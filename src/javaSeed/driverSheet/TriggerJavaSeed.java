@@ -209,9 +209,11 @@ public class TriggerJavaSeed {
 		Const.driver.quit();
 		
 		// Piece to read JIRATCKeyFAILLIST Array list for any Failed TC, if any return the Exit Code 1
-		for (int i=0;i<=Const.JIRATCKeyFAILLIST.size();i++){
-			if(Const.JIRATCKeyFAILLIST.get(i).toUpperCase().contentEquals("FAIL")){
-				ErrorCodeStatus=1;
+		if(Const.JIRATCKeyFAILLIST.size()>=1){
+			for (int i=1;i<=Const.JIRATCKeyFAILLIST.size();i++){
+				if(Const.JIRATCKeyFAILLIST.get(i).toUpperCase().contentEquals("FAIL")){
+					ErrorCodeStatus=1;
+				}
 			}
 		}
 		System.exit(ErrorCodeStatus);
