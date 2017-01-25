@@ -20,6 +20,7 @@ public class TriggerJavaSeed {
 		// Consume 'Row Index' parameter for Environment file from Executable Jar  
 		String vEnvParam = args;
 		String ExeStatus = null;
+		int ErrorCodeStatus=0;
 		
 		
 		// Define the WebDriver based on input from Environment File
@@ -206,7 +207,15 @@ public class TriggerJavaSeed {
 		}
 		
 		Const.driver.quit();
-
+		
+		// Piece to read JIRATCKeyFAILLIST Array list for any Failed TC, if any return the Exit Code 1
+		for (int i=0;i<=Const.JIRATCKeyFAILLIST.size();i++){
+			if(Const.JIRATCKeyFAILLIST.get(i).toUpperCase().contentEquals("FAIL")){
+				ErrorCodeStatus=1;
+			}
+		}
+		System.exit(ErrorCodeStatus);
+		// End of return the Exit Code 1 piece
 	}
 
 }
