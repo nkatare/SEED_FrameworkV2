@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.relevantcodes.extentreports.ExtentReports;
+
 import javaSeed.constants.Const;
 import javaSeed.utils.FileHandling;
 import javaSeed.utils.ParseExcelFile;
 import javaSeed.utils.SetDriver;
+import javaSeed.utils.TimeStamp;
 import javaSeed.utils.jiraConnection.JIRAUpdate;
 
 public class TriggerJavaSeed {
@@ -28,6 +31,8 @@ public class TriggerJavaSeed {
 				//Const.ENVIRONMENT_EXEC_ARRAY = Const.ENVIRONMENT_DATA_ARRAY[1];
 		
 				Const.driver = SetDriver.SetWebDriver(Const.driver, Const.ENVIRONMENT_EXEC_ARRAY[2]);
+				String ExtendReportName = Const.ENVIRONMENT_EXEC_ARRAY[0]+"_"+TimeStamp.RetunrDate("YYYYMMdd")+TimeStamp.ReturnTime("HHmmss");
+				Const.oExtent = new ExtentReports(Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".html", true);
 				
 				String Scenarios[][] = Const.SHTEST_SCENARIOS;
 								
@@ -185,8 +190,8 @@ public class TriggerJavaSeed {
 				}
 		
 		Const.oExtent.flush();
-		//FileHandling.ZipFile(Const.JAVA_SEED_EXTENTREPORTPATH+".zip", Const.JAVA_SEED_EXTENTREPORTPATH+".html");
-		//FileHandling.DeleteFile(Const.JAVA_SEED_EXTENTREPORTPATH+".html");
+		//FileHandling.ZipFile(Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".zip", Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".html");
+		//FileHandling.DeleteFile(Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".html");
 		
 		// JIRA Update TC IDs collection Block
 		String JIRA_UPDATEFLAG = Const.ENVIRONMENT_EXEC_ARRAY[1];
@@ -194,12 +199,10 @@ public class TriggerJavaSeed {
 		
 		if(JIRA_UPDATEFLAG.toUpperCase().trim().contentEquals("Y")){
 			JIRAUpdate.ConnectJiraUpdateTCStatus(Const.JIRATCKeyPASSLIST, Const.JIRATCKeyFAILLIST);
-			String sReportPath = Const.JAVA_SEED_EXTENTREPORTPATH+".zip";
-					//"C:\\JavaSeed\\03Reports\\OAT_BPMEventingMicroserviceFailure_60Itr.zip";
-					//Const.JAVA_SEED_EXTENTREPORTPATH+".zip";
+			String sReportPath = Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".zip";
 			Boolean AttachmentStatus = JIRAUpdate.UploadTestExecutionReport(sReportPath, JIRA_REPORTUPLOAD_TCKEY);
 			if(AttachmentStatus==true){
-				FileHandling.DeleteFile(Const.JAVA_SEED_EXTENTREPORTPATH+".zip");
+				FileHandling.DeleteFile(Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".zip");
 			}
 		}
 		
