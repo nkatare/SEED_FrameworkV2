@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.relevantcodes.extentreports.ExtentReports;
@@ -23,8 +24,10 @@ public class TriggerJavaSeed {
 		// Consume 'Row Index' parameter for Environment file from Executable Jar  
 		String vEnvParam = args;
 		String ExeStatus = null;
-		int ErrorCodeStatus=0;
 		
+		// Resetting TC Pass and Fail List to handle Iterative Environments run
+		Const.JIRATCKeyPASSLIST = new ArrayList<String>();
+		Const.JIRATCKeyFAILLIST = new ArrayList<String>();
 		
 		// Define the WebDriver based on input from Environment File
 				Const.ENVIRONMENT_EXEC_ARRAY = Const.ENVIRONMENT_DATA_ARRAY[Integer.parseInt(vEnvParam)];
@@ -207,13 +210,6 @@ public class TriggerJavaSeed {
 		}
 		
 		Const.driver.quit();
-		
-		// Piece to read JIRATCKeyFAILLIST Array list for any Failed TC, if any return the Exit Code 1
-		if(Const.JIRATCKeyFAILLIST.size()>=1){
-			ErrorCodeStatus=1;
-		}
-		System.exit(ErrorCodeStatus);
-		// End of return the Exit Code 1 piece
 		
 	}
 
