@@ -178,9 +178,6 @@ public class TriggerJavaSeed {
 						    Const.etScenarios.appendChild(Const.etTestCases);
 							
 						}
-						
-				    	
-
 					Const.oExtent.endTest(Const.etScenarios);
 				    }
 					
