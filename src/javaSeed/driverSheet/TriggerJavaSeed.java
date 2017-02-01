@@ -1,53 +1,32 @@
 package javaSeed.driverSheet;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-
-import com.relevantcodes.extentreports.ExtentReports;
 
 import javaSeed.constants.Const;
 import javaSeed.utils.FileHandling;
 import javaSeed.utils.ParseExcelFile;
 import javaSeed.utils.SetDriver;
-import javaSeed.utils.TimeStamp;
 import javaSeed.utils.jiraConnection.JIRAUpdate;
-import javaSeed.utils.jiraConnection.ZephyrConfigModel;
 
 public class TriggerJavaSeed {
-	
+
 	@SuppressWarnings("rawtypes")
-	public static void TriggerScenarios(String args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InterruptedException {
+	public static void TriggerScenarios(String args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		// Consume 'Row Index' parameter for Environment file from Executable Jar  
 		String vEnvParam = args;
 		String ExeStatus = null;
-		Boolean JIRATestToolFlag = null;
-		ZephyrConfigModel ZCModel = new ZephyrConfigModel();
 		
 		
 		// Define the WebDriver based on input from Environment File
 				Const.ENVIRONMENT_EXEC_ARRAY = Const.ENVIRONMENT_DATA_ARRAY[Integer.parseInt(vEnvParam)];
+				//Const.ENVIRONMENT_EXEC_ARRAY = Const.ENVIRONMENT_DATA_ARRAY[1];
 		
-			//<-------------- Driver Sheet JIRA and Update Status. Connection established and Get TC Data, Flag -------------->
-				if(Const.ENVIRONMENT_EXEC_ARRAY[1].toUpperCase().contentEquals("JIRA") && 
-						Const.ENVIRONMENT_EXEC_ARRAY[2].toUpperCase().trim().contentEquals("Y")){
-					ZCModel = JIRAUpdate.MakeConnectionGetTCsFromCycle();
-					if(ZCModel==null){
-						JIRATestToolFlag = false;
-					} else{ JIRATestToolFlag = true; }
-				} else{ JIRATestToolFlag = false; }
-			//<-------------- Set Flag Ends -------------->
-				
-				Const.driver = SetDriver.SetWebDriver(Const.driver, Const.ENVIRONMENT_EXEC_ARRAY[3]);
-				// Per TC generation report for Test Tool upload  
-				String ExtendReportName = Const.ENVIRONMENT_EXEC_ARRAY[0]+"_"+TimeStamp.RetunrDate("YYYYMMdd")+TimeStamp.ReturnTime("HHmmss");
-				// Test Suite generation report to upload on Build Tool
-				Const.oExtent = new ExtentReports(Const.JAVA_SEED_REPORTS_PATH+ExtendReportName+".html", true);
+				Const.driver = SetDriver.SetWebDriver(Const.driver, Const.ENVIRONMENT_EXEC_ARRAY[2]);
 				
 				String Scenarios[][] = Const.SHTEST_SCENARIOS;
 								
@@ -101,22 +80,14 @@ public class TriggerJavaSeed {
 							arrTestCaseData = oTestCaseData.ReadExcel(Const.JAVA_SEED_DRIVERSHEET_PATH, "tc"+arrTestScenario[0]);	
 							
 
-// Iteration				// Loop for Scenario Execution Index, 'Iteration Index' column on the testScenario Sheet 
+							// Loop for Scenario Execution Index, 'Iteration Index' column on the testScenario Sheet 
 							for (int ScenItr=ScenarioIndexFrom;ScenItr<=ScenarioIndexTo;ScenItr++){
 								
 								//+++++++++++++ Add Code here to verify that Test Case present in the ALM Test Set, if not, skip the test execution.
 								// Using - String = ReadALMEntity.GetTestCaseInstanceID(TestSetFodlerName,TestSetName,TestCaseID). If String = "0000" Means TestCase not found.
 
-								// Including oTestExtend Logic to split Test Reoprts for Each Test Case
-								String testExtendReportName = arrTestCaseData[ScenItr][0]+"_"+TimeStamp.RetunrDate("YYYYMMdd")+TimeStamp.ReturnTime("HHmmss");
-								Const.oTestExtent = new ExtentReports(Const.JAVA_SEED_REPORTS_PATH+testExtendReportName+".html", true);
-																
 								// Starting Extent Report Test Execution for the Test Case per Iteration
 						    	Const.etTestCases = Const.oExtent.startTest(arrTestCaseData[ScenItr][0], //Test Case ID
-						    			 arrTestCaseData[ScenItr][1]); //Test Case Description						    					);
-						    	
-						    	// Starting Extent Report Test Execution for Each Test Case
-						    	Const.etTestCases1 = Const.oTestExtent.startTest(arrTestCaseData[ScenItr][0], //Test Case ID
 						    			 arrTestCaseData[ScenItr][1] //Test Case Description
 						    					);
 						    	 
@@ -142,44 +113,14 @@ public class TriggerJavaSeed {
 							    }
 							    // Ending Extent Report Test Execution for the Test Case per Iteration
 							    Const.oExtent.endTest(Const.etTestCases);
-							    Const.oTestExtent.endTest(Const.etTestCases1);
 							    
 							    // JIRA Update TC IDs collection Block
-							    List<String> ForJiraPASSLIST = new ArrayList<String>();
-								List<String> ForJiraFAILLIST = new ArrayList<String>();
 							    if (Const.etTestCases.getRunStatus().toString().toUpperCase().contentEquals("PASS")){
 							    	Const.JIRATCKeyPASSLIST.add(arrTestCaseData[ScenItr][0]);
-							    	ForJiraPASSLIST.add(arrTestCaseData[ScenItr][0]);
 							    } else {
 							    	Const.JIRATCKeyFAILLIST.add(arrTestCaseData[ScenItr][0]);
-							    	ForJiraFAILLIST.add(arrTestCaseData[ScenItr][0]);
 							    }
-							    // JIRA Update TC IDs collection Block //
-							    
-							    // --------- JIRA Update Block to Status update and Per TC Report upload after execution of Each TC
-								if(JIRATestToolFlag==true){
-										
-									ZCModel = JIRAUpdate.MakeConnectionGetTCsFromCycle();
-										Boolean StatusUpdateStatus = JIRAUpdate.ConnectJiraUpdateTCStatus(ZCModel, ForJiraPASSLIST, ForJiraFAILLIST);
-
-										if(StatusUpdateStatus==true){
-
-											Const.etTestCases1.getTest().setLog(Const.etTestCases.getTest().getLogList());
-									    	Const.etTestCases1.getTest().setStatus(Const.etTestCases.getTest().getStatus());
-										    Const.oTestExtent.flush();
-										    String sReportPath = Const.JAVA_SEED_REPORTS_PATH+testExtendReportName+".html";
-										    File f = new File(sReportPath);
-										    while(!f.exists()) {
-										        Thread.sleep(500);
-										    }										    										
-											Boolean AttachmentStatus = JIRAUpdate.UploadTestExecutionReport(ZCModel, sReportPath, arrTestCaseData[ScenItr][0]);
-											if(AttachmentStatus==true){
-												FileHandling.DeleteFile(sReportPath);
-											}
-										}
-								}
-								// --------- End of JIRA Update Block
-							    
+							    // JIRA Update TC IDs collection Block
 							    
 							    // Appending Extent Report Test Execution for the Test Case per Iteration to the Test Scenario Test Run
 							    Const.etScenarios.appendChild(Const.etTestCases);
@@ -187,16 +128,9 @@ public class TriggerJavaSeed {
 						} 
 						// ITERATION INDEX: Else if Iteration Index was not defined. This means the scenario was not supposed to run through Iteration and only one instance of data
 						// which was defined in the Test Step Sheet itself
-// No Iteration
 						else {
 							Const.etTestCases = Const.oExtent.startTest(arrTestScenario[2], //Test Case ID
 									arrTestScenario[3]); //Test Case Description
-							// Including oTestExtend Logic to split Test Reoprts for Each Test Case
-							String testExtendReportName = arrTestScenario[2]+"_"+TimeStamp.RetunrDate("YYYYMMdd")+TimeStamp.ReturnTime("HHmmss");
-							Const.oTestExtent = new ExtentReports(Const.JAVA_SEED_REPORTS_PATH+testExtendReportName+".html", true);
-							Const.etTestCases1 = Const.oTestExtent.startTest(arrTestScenario[2], //Test Case ID
-									arrTestScenario[3]); //Test Case Description
-							
 							// Loop Each Scenario Execution Index, Loop through each Function defined in the testSteps sheets.
 						    for (int j=0;j<ArrListScenariosTestSteps.size();j++){
 						    	// Setting Test Steps array from the Array List of that row running in this loop for Scenario in execution						    	
@@ -217,80 +151,34 @@ public class TriggerJavaSeed {
 						    }
 						   // System.out.println(Const.etTestCases.getRunStatus());
 						    Const.oExtent.endTest(Const.etTestCases);
-						    Const.oTestExtent.endTest(Const.etTestCases1);
-
-						    // JIRA Update TC IDs collection Block. Including logic if Multiple IDs present with ',' separated
-						    List<String> ForJiraPASSLIST = new ArrayList<String>();
-							List<String> ForJiraFAILLIST = new ArrayList<String>();
+						   
+						    // JIRA Update TC IDs collection Block
 						    if (Const.etTestCases.getRunStatus().toString().toUpperCase().contentEquals("PASS")){
 						    	if(arrTestScenario[2].contains(",")){
 						    		String[] TCKeys = arrTestScenario[2].split(",");
 						    		for(String TCKey:TCKeys){
 						    			Const.JIRATCKeyPASSLIST.add(TCKey);
-						    			ForJiraPASSLIST.add(TCKey);
 						    		}
 						    	} else{
 						    		Const.JIRATCKeyPASSLIST.add(arrTestScenario[2]);
-						    		ForJiraPASSLIST.add(arrTestScenario[2]);
 						    	}
 						    } else {
 						    	if(arrTestScenario[2].contains(",")){
 						    		String[] TCKeys = arrTestScenario[2].split(",");
 						    		for(String TCKey:TCKeys){
 						    			Const.JIRATCKeyFAILLIST.add(TCKey);
-						    			ForJiraFAILLIST.add(TCKey);
 						    		}
 						    	}else{
 						    		Const.JIRATCKeyFAILLIST.add(arrTestScenario[2]);
-						    		ForJiraFAILLIST.add(arrTestScenario[2]);
 						    	}
 						    }
 						    // JIRA Update TC IDs collection Block
-						    // --------- JIRA Update Block to Status update and Per TC Report upload after execution of Each TC
-							if(JIRATestToolFlag==true){
-								
-								ZCModel = JIRAUpdate.MakeConnectionGetTCsFromCycle();
-
-								@SuppressWarnings("unused")
-								Boolean StatusUpdateStatus = JIRAUpdate.ConnectJiraUpdateTCStatus(ZCModel, ForJiraPASSLIST, ForJiraFAILLIST);
-								if(StatusUpdateStatus=true){
-									
-							    	Const.etTestCases1.getTest().setLog(Const.etTestCases.getTest().getLogList());
-							    	Const.etTestCases1.getTest().setStatus(Const.etTestCases.getTest().getStatus());
-								    Const.oTestExtent.flush();
-								    String sReportPath = Const.JAVA_SEED_REPORTS_PATH+testExtendReportName+".html";
-								    File f = new File(sReportPath);
-								    while(!f.exists()) {
-								        Thread.sleep(500);
-								    }	
-								    
-									// Logic to run Attachment for Multiple IDs present with ',' separated
-									if(arrTestScenario[2].contains(",")){
-							    		String[] TCKeys = arrTestScenario[2].split(",");
-							    		Boolean AttachmentStatusFinal = null;
-							    		for(String TCKey:TCKeys){
-							    			Boolean AttachmentStatus = JIRAUpdate.UploadTestExecutionReport(ZCModel, sReportPath, TCKey);
-							    			if(AttachmentStatus==true){
-							    				AttachmentStatusFinal=true;
-							    			}
-										}
-							    		if(AttachmentStatusFinal==true){
-											FileHandling.DeleteFile(sReportPath);
-										}
-							    	} else{
-							    		Boolean AttachmentStatus = JIRAUpdate.UploadTestExecutionReport(ZCModel, sReportPath, arrTestScenario[2]);
-										if(AttachmentStatus==true){
-											FileHandling.DeleteFile(sReportPath);
-										}
-							    	}
-								}
-																
-							}
-							// --------- End of JIRA Update Block
-							
+						    
 						    Const.etScenarios.appendChild(Const.etTestCases);
 							
 						}
+						
+				    	
 
 					Const.oExtent.endTest(Const.etScenarios);
 				    }
@@ -299,6 +187,24 @@ public class TriggerJavaSeed {
 				}
 		
 		Const.oExtent.flush();
+		//FileHandling.ZipFile(Const.JAVA_SEED_EXTENTREPORTPATH+".zip", Const.JAVA_SEED_EXTENTREPORTPATH+".html");
+		//FileHandling.DeleteFile(Const.JAVA_SEED_EXTENTREPORTPATH+".html");
+		
+		// JIRA Update TC IDs collection Block
+		String JIRA_UPDATEFLAG = Const.ENVIRONMENT_EXEC_ARRAY[1];
+		String JIRA_REPORTUPLOAD_TCKEY=Const.ENVIRONMENT_EXEC_ARRAY[13];
+		
+		if(JIRA_UPDATEFLAG.toUpperCase().trim().contentEquals("Y")){
+			JIRAUpdate.ConnectJiraUpdateTCStatus(Const.JIRATCKeyPASSLIST, Const.JIRATCKeyFAILLIST);
+			String sReportPath = Const.JAVA_SEED_EXTENTREPORTPATH+".zip";
+					//"C:\\JavaSeed\\03Reports\\OAT_BPMEventingMicroserviceFailure_60Itr.zip";
+					//Const.JAVA_SEED_EXTENTREPORTPATH+".zip";
+			Boolean AttachmentStatus = JIRAUpdate.UploadTestExecutionReport(sReportPath, JIRA_REPORTUPLOAD_TCKEY);
+			if(AttachmentStatus==true){
+				FileHandling.DeleteFile(Const.JAVA_SEED_EXTENTREPORTPATH+".zip");
+			}
+		}
+		
 		Const.driver.quit();
 
 	}

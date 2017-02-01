@@ -21,11 +21,9 @@ public class SetDriver{
 		if (strBrowserType.toUpperCase().equals("IE")) {
 			
 			// Chunk of code for IE browser
-			File file = new File(Const.IE_DRIVERW32_PATH);
+			File file = new File(Const.IE_DRIVERX64_PATH);
 			System.setProperty("webdriver.ie.driver", file.getPath());
-			DesiredCapabilities cap = new DesiredCapabilities();
-			cap.setCapability(InternetExplorerDriver.IE_ENSURE_CLEAN_SESSION, true);
-			driver = new InternetExplorerDriver(cap);
+			driver = new InternetExplorerDriver();
 		} 
 			// Chunk of code for Chrome browser
 			else if (strBrowserType.toUpperCase().equals("CHROME")) {
