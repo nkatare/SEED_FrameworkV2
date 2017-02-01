@@ -20,8 +20,9 @@ public class Const {
 	static ParseExcelFile ExcelSheetObj = new ParseExcelFile();
 	
 	// Reference Paths for various resources
-	public static final String JAVA_SEED_PATH = "C:\\JavaSeed\\";
-			//System.getProperty("java.io.tmpdir")+"\\JavaSeed\\";
+	public static final String JAVA_SEED_PATH = System.getProperty("java.io.tmpdir")+"\\JavaSeed\\"; 
+			// "C:\\JavaSeed\\";
+			// System.getProperty("java.io.tmpdir")+"\\JavaSeed\\";
 	//public static final String JAVA_SEED_ENV_PATH = JAVA_SEED_PATH+"EnvironmentSheets\\EnvironmentSheet.xlsx";
 	public static final String JAVA_SEED_DRIVERSHEET_PATH = JAVA_SEED_PATH+"01DriverSheets\\DriverSheet.xlsx";
 	public static final String JAVA_SEED_OR_PATH = JAVA_SEED_PATH+"02ObjectRepository\\ObjectRepository.xlsx";
@@ -67,9 +68,11 @@ public class Const {
 	//public static WebDriver driver = SetDriver.SetWebDriver(Const.driver, Const.ENVIRONMENT_DATA_ARRAY[1][2]);	//??????????? Hard-Coded ????????????????
 	
 // EXTENT Reports Objects
-	public static ExtentReports oExtent = new ExtentReports(JAVA_SEED_EXTENTREPORTPATH+".html", true);
-	public static ExtentTest etScenarios = null;
-	public static ExtentTest etTestCases = null;
+		public static ExtentReports oExtent = null;
+		public static ExtentTest etScenarios = null;
+		public static ExtentTest etTestCases = null;
+		public static ExtentTest etTestCases1 = null;
+		public static ExtentReports oTestExtent = null;
 
 // JIRA auto update Variables
 	

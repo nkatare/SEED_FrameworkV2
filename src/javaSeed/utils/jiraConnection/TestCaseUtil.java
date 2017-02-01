@@ -2,7 +2,6 @@ package javaSeed.utils.jiraConnection;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +21,6 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import javaSeed.constants.Const;
 
 public class TestCaseUtil {
 	
@@ -98,8 +95,9 @@ public class TestCaseUtil {
 	}
 	
 	// Update the Execution status to the Test Cases in the Cycle
-	public static void executeTests(ZephyrConfigModel zephyrData, List<String> passList, List<String> failList) {
+	public static Boolean executeTests(ZephyrConfigModel zephyrData, List<String> passList, List<String> failList) {
 
+		Boolean StatusUpdateStatus = null;
 		Map<String, Map<Long, String>> TCKeyIDSummary = zephyrData.getTCKeyID();
 		Boolean ExecutionIDGet = false;
 		CloseableHttpResponse response = null;
@@ -164,6 +162,7 @@ public class TestCaseUtil {
 
 		if (statusCode >= 200 && statusCode < 300) {
 			HttpEntity entity = response.getEntity();
+			StatusUpdateStatus=true;
 			try {
 				EntityUtils.toString(entity);
 			} catch (ParseException e) {
@@ -180,8 +179,9 @@ public class TestCaseUtil {
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 			}
+		StatusUpdateStatus=false;
 		}
-	
+	return StatusUpdateStatus;
 	}
 	
 	// Get the Entity ID of the TC using Issue Key from the Cycle
@@ -247,14 +247,14 @@ public class TestCaseUtil {
 	// Add attachment to the Issue 
 	public static Boolean AddAttachmentJIRAExecution(ZephyrConfigModel zephyrData, String ReportPath, String IssueKey) {
 		
-		String JIRA_B64PASSWORD = Const.ENVIRONMENT_EXEC_ARRAY[9];
+		String JIRA_B64PASSWORD = JIRAUpdate.JIRA_B64PASSWORD;
 		Boolean AttachmentStatus = null;
 		
 		HttpResponse response = null;
 		HttpPost httpPost = null;	
 		int statusCode = 0;
 		
-		String EntityID = TestCaseUtil.getEntityIDFromIssueKey(zephyrData, IssueKey);
+		String EntityID = zephyrData.getTCKeyID().get(IssueKey).keySet().toString().replace("[", "").replace("]", "");
 			
 			try {
 				String executionsURL = URL_ADDATTACHMENT.replace("{SERVER}", zephyrData.getRestClient().getUrl()).replace("{entityId}", EntityID+"");
@@ -283,16 +283,10 @@ public class TestCaseUtil {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			List<String> Pass = new ArrayList<String>();
-			List<String> Fail = new ArrayList<String>();
+
 			if (statusCode >= 200 && statusCode < 300) {
-				Pass.add(IssueKey);
-				TestCaseUtil.executeTests(zephyrData, Pass, Fail);
 				AttachmentStatus = true;
 			} else {
-				Fail.add(IssueKey);
-				TestCaseUtil.executeTests(zephyrData, Pass, Fail);
 				AttachmentStatus = false;
 			}
 			return AttachmentStatus;	
