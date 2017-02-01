@@ -74,7 +74,6 @@ public class JIRAUpdate {
 			ZCModel.setRestClient(oRestClient);
 			ZCModel.setTCKeyID(TestCaseUtil.fetchIssueKeyIdSummaryFromCycle(ZCModel));
 		}
-
 		
 		}
 		 catch (Exception e) {
